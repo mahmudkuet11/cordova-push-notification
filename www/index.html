@@ -1,0 +1,123 @@
+<!DOCTYPE html><!--HTML5 doctype-->
+<html>
+<head>
+	<title>Hello AdMob</title>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+	<script src='cordova.js'></script>
+    <script src='js/jquery.js'></script>
+	<script type="text/javascript">
+		
+        var onDeviceReady=function(){
+            navigator.splashscreen.hide();
+            initAdMob();
+		};
+		document.addEventListener("deviceready",onDeviceReady,false);
+        
+        function initAdMob(){
+            if ( window.plugins && window.plugins.AdMob ) {
+                var admob_key_banner = "ca-app-pub-2773616400896769/2194824337";
+                var admob_key_interstitial = "ca-app-pub-2773616400896769/5840804739";
+                window.plugins.AdMob.setOptions( {
+                    publisherId: admob_key_banner,
+                    bannerAtTop: false, // set to true, to put banner at top
+                    overlap: false, // set to true, to allow banner overlap webview
+                    offsetTopBar: true, // set to true to avoid ios7 status bar overlap                    
+                    interstitialAdId: admob_key_interstitial,
+                    autoShow: true, // autoshow intertitial Ad
+                    isTesting: true // receiving test ad
+                });
+            } else {
+                //alert("AdMob plugin not ready");
+            }
+        }
+        
+        function showAdMobBanner(){
+            window.plugins.AdMob.createBannerView();
+        }
+        
+        function showAdMobInterstitial(){
+            window.plugins.AdMob.createInterstitialView();
+        }
+        
+	</script>
+</head>
+<body>
+
+    <h1>Hello World</h1>
+
+    <button onclick="send_notification();">Test Push Notification</button>
+    
+    <script>
+        var tokenID = "";
+        function send_notification()
+        {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://labs.qnimate.com/ios-push/android.php?token=" + encodeURIComponent(tokenID), false);
+            xhr.send();
+        }
+        
+        document.addEventListener("deviceready", function(){
+            //Unregister the previous token because it might have become invalid. Unregister everytime app is started.
+            window.plugins.pushNotification.unregister(successHandler, errorHandler);
+            
+             window.plugins.pushNotification.register(
+                successHandler,
+                errorHandler,
+                {
+                    //senderID is the project ID
+                    "senderID":"380486841919",
+                    //callback function that is executed when phone recieves a notification for this app
+                    "ecb":"onNotification"
+                }); 
+        }, false);
+ 
+        //app given permission to receive and display push messages in Android.
+        function successHandler (result) {
+            alert('result = ' + result);
+        }
+        
+        //app denied permission to receive and display push messages in Android.
+        function errorHandler (error) {
+            alert('error = ' + error);
+        }
+        
+        
+        //fired when token is generated, message is received or an error occured.
+        function onNotification(e) 
+        {
+            switch( e.event )
+            {
+                //app is registered to receive notification
+                case 'registered':
+                    if(e.regid.length > 0)
+                    {
+                        // Your Android push server needs to know the token before it can push to this device
+            // here is where you might want to send the token to your server along with user credentials.
+                        alert('registration id = '+e.regid);
+                        tokenID = e.regid;
+                        var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://utopiabd.com/pushnoti/token.php?token=" + encodeURIComponent(tokenID), false);
+            xhr.send();
+                        
+                    }
+                    break;
+                case 'message':
+                  //Do something with the push message. This function is fired when push message is received or if user clicks on the tile.
+                  alert('message = '+e.message+' msgcnt = '+e.msgcnt);
+                break;
+                case 'error':
+                  alert('GCM error = '+e.msg);
+                break;
+                default:
+                  alert('An unknown GCM event has occurred');
+                  break;
+            }
+        }
+    </script>
+    
+    
+    
+    
+</body>
+</html>
